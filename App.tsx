@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
-import DocumentPicker from 'react-native-document-picker';
 
 const App = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -11,37 +10,42 @@ const App = () => {
   }, []);
 
   const setupTrackPlayer = async () => {
-    await TrackPlayer.setupPlayer();
+    try {
+      // Attempt to check if TrackPlayer is ready
+      await TrackPlayer.setupPlayer();
+      console.log('TrackPlayer setup successfully.');
+    } catch (error) {
+      console.error('Error setting up TrackPlayer:', error);
+    }
   };
 
   const pickAudio = async () => {
     try {
-      const result = await DocumentPicker.pick({
-        type: [DocumentPicker.types.audio],
-      });
-
       await TrackPlayer.add({
         id: 'track1',
-        url: result.uri,
-        title: 'Sample Track',
-        artist: 'Sample Artist',
+        url: require('./files/Willpower.mp3'), // Adjust the path accordingly
+        title: 'Willpower',
+        artist: 'Artist Name',
       });
+
+      setIsPlaying(false);
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        // User cancelled the picker
-      } else {
-        throw err;
-      }
+      console.error('Error picking audio:', err);
     }
   };
 
   const togglePlayback = async () => {
-    if (isPlaying) {
-      await TrackPlayer.pause();
-    } else {
-      await TrackPlayer.play();
+    try {
+      if (isPlaying) {
+        await TrackPlayer.pause();
+      } else {
+        await TrackPlayer.play();
+      }
+
+      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Error toggling playback:', error);
     }
-    setIsPlaying(!isPlaying);
   };
 
   return (
