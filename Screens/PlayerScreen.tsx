@@ -1,4 +1,3 @@
-// PlayerScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput } from 'react-native';
 import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
