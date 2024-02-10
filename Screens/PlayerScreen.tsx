@@ -1,5 +1,6 @@
+// PlayerScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput } from 'react-native';
+import { View, Text, Button, TextInput, StyleSheet } from 'react-native';
 import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 
 const PlayerScreen = ({ navigation }) => {
@@ -58,19 +59,68 @@ const PlayerScreen = ({ navigation }) => {
     }
   };
 
+  const pausePlayback = async () => {
+    try {
+      await TrackPlayer.pause();
+      setIsPlaying(false);
+    } catch (error) {
+      console.error('Error pausing playback:', error);
+    }
+  };
+
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Music Player App</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Music Player App</Text>
       <TextInput
-        style={{ height: 40, borderColor: 'gray', borderWidth: 1, margin: 10, padding: 5 }}
+        style={styles.input}
         placeholder="Enter Online Audio URL"
         onChangeText={(text) => setOnlineUrl(text)}
         value={onlineUrl}
       />
-      <Button title="Play Online Track" onPress={playOnlineTrack} />
-      <Button title={isPlaying ? 'Pause' : 'Play'} onPress={togglePlayback} />
+      <Button style={styles.button} title="Play Online Track" onPress={playOnlineTrack} />
+      <View style={styles.controls}>
+        <Button
+          style={styles.button}
+          title={isPlaying ? 'Pause' : 'Play'}
+          onPress={togglePlayback}
+        />
+        {isPlaying && (
+          <Button style={styles.button} title="Pause" onPress={pausePlayback} />
+        )}
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginVertical: 10,
+    padding: 5,
+    width: '100%',
+  },
+  button: {
+    marginVertical: 10,
+    width: '100%',
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+});
 
 export default PlayerScreen;
