@@ -1,9 +1,11 @@
+// WelcomeScreen.tsx
 import React from 'react';
 import { View, Text, Button, StyleSheet, ImageBackground, Image } from 'react-native';
 
 const WelcomeScreen = ({ navigation }) => {
-  const navigateToPlayerScreen = () => {
-    navigation.navigate('Player');
+  //CURRENTLY ROUTED TO THE LOCALPLAYER
+  const navigateToLocalPlayerScreen = () => {
+    navigation.navigate('LocalPlayer');
   };
 
   return (
@@ -18,7 +20,7 @@ const WelcomeScreen = ({ navigation }) => {
         />
         <Text style={styles.title}>Welcome to Toney!</Text>
         <Text style={styles.subtitle}>Your Music Companion</Text>
-        <Button title="Get Started" onPress={navigateToPlayerScreen} buttonStyle={styles.button} />
+        <Button title="Get Started" onPress={navigateToLocalPlayerScreen} buttonStyle={styles.button} />
       </View>
     </ImageBackground>
   );
