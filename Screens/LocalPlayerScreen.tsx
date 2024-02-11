@@ -9,19 +9,20 @@ const LocalPlayerScreen = ({ navigation }) => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
-    requestStoragePermission();
-    // reusing amadous initialization
-    TrackPlayer.setupPlayer().then(() => {
-      console.log('TrackPlayer setup successfully.');
-    }).catch(error => {
-      console.error('Error setting up TrackPlayer:', error);
-    });
+  requestStoragePermission();
+  TrackPlayer.setupPlayer().then(() => {
+    console.log('TrackPlayer setup successfully.');
+  }).catch(error => {
+    console.error('Error setting up TrackPlayer:', error);
+  });
 
-    // destroy the current track when new song is selected, currently not working [find a working method]
-    return () => {
-      TrackPlayer.destroy();
-    };
-  }, []);
+  return async () => {
+    await TrackPlayer.stop(); // Stop the player
+    await TrackPlayer.remove('local_audio'); // Remove the current track
+    console.log('TrackPlayer stopped and track removed successfully.');
+  };
+}, []);
+
 
   // request storage permission yada yada the permissions popup
   const requestStoragePermission = async () => {
@@ -69,29 +70,35 @@ const LocalPlayerScreen = ({ navigation }) => {
       console.warn('NO FILE SELECTED');
       return;
     }
-
-    if (isPlaying) {
-      await TrackPlayer.pause();
-      setIsPlaying(false);
-    } else {
-      // track details for ui to display. not implemented yet
+  
+    try {
+      if (isPlaying) {
+        await TrackPlayer.pause();
+        setIsPlaying(false);
+      }
+  
+      // Reset the player to clear the current queue
+      await TrackPlayer.reset();
+  
       const track = {
         id: 'local_audio',
-        url: selectedFile.uri, //local location
+        url: selectedFile.uri,
         title: selectedFile.name,
-        artist: '', // need to read the artists' metadeta, not implemented yet
+        artist: '',
       };
-
-      // add to queue, not implemented yet
+  
+      // Add the new track to the queue
       await TrackPlayer.add([track]);
-
-      // play track
+  
+      // Play the new track
       await TrackPlayer.play();
-
-      // update song playing state
+  
       setIsPlaying(true);
+    } catch (error) {
+      console.error('Error playing local audio:', error);
     }
   };
+  
 
   return (
     <View style={styles.container}>
