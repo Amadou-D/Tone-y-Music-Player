@@ -9,22 +9,23 @@ const LocalPlayerScreen = ({ navigation }) => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
-  requestStoragePermission();
-  TrackPlayer.setupPlayer().then(() => {
-    console.log('TrackPlayer setup successfully.');
-  }).catch(error => {
-    console.error('Error setting up TrackPlayer:', error);
-  });
+    requestStoragePermission();
 
-  return async () => {
-    await TrackPlayer.stop(); // Stop the player
-    await TrackPlayer.remove('local_audio'); // Remove the current track
-    console.log('TrackPlayer stopped and track removed successfully.');
-  };
-}, []);
+    // Check if TrackPlayer is already initialized
+    if (!TrackPlayer.isInitialized) {
+      // Initialize TrackPlayer
+      TrackPlayer.setupPlayer().then(() => {
+        console.log('TrackPlayer setup successfully.');
+      }).catch(error => {
+        console.error('Error setting up TrackPlayer:', error);
+      });
+    }
 
+    return () => {
+      TrackPlayer.destroy();
+    };
+  }, []);
 
-  // request storage permission yada yada the permissions popup
   const requestStoragePermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -46,14 +47,29 @@ const LocalPlayerScreen = ({ navigation }) => {
       console.warn(err);
     }
   };
-
-  // select a file
+  
   const selectFile = async () => {
     try {
       const res = await DocumentPicker.pickSingle({
         type: [DocumentPicker.types.audio],
       });
-      console.log('Selected File:', res);
+  
+      if (isPlaying) {
+        await TrackPlayer.pause();
+        setIsPlaying(false);
+      }
+  
+      await TrackPlayer.reset(); // Clear the current queue
+  
+      const track = {
+        id: 'local_audio',
+        url: res.uri,
+        title: res.name,
+        artist: '',
+      };
+  
+      await TrackPlayer.add([track]);
+  
       setSelectedFile(res);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
@@ -63,47 +79,41 @@ const LocalPlayerScreen = ({ navigation }) => {
       }
     }
   };
+  
 
-  // play  and pause
   const playFile = async () => {
     if (!selectedFile) {
       console.warn('NO FILE SELECTED');
       return;
     }
-  
-    try {
-      if (isPlaying) {
-        await TrackPlayer.pause();
-        setIsPlaying(false);
-      }
-  
-      // Reset the player to clear the current queue
-      await TrackPlayer.reset();
-  
+
+    if (isPlaying) {
+      await TrackPlayer.pause();
+      setIsPlaying(false);
+    } else {
       const track = {
         id: 'local_audio',
         url: selectedFile.uri,
         title: selectedFile.name,
         artist: '',
       };
-  
-      // Add the new track to the queue
+
       await TrackPlayer.add([track]);
-  
-      // Play the new track
       await TrackPlayer.play();
-  
+
       setIsPlaying(true);
-    } catch (error) {
-      console.error('Error playing local audio:', error);
     }
   };
-  
+
+  const swapTrack = () => {
+    selectFile();
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Local Player Screen</Text>
       <Button title="Select File" onPress={selectFile} />
+      <Button title="Swap Track" onPress={swapTrack} />
       {selectedFile && (
         <View>
           <Text style={styles.selectedFile}>Selected File: {selectedFile.name}</Text>
