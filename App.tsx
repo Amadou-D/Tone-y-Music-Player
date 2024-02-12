@@ -10,10 +10,15 @@ const Stack = createNativeStackNavigator();
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Welcome">
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{
+          animation: 'none', // Disable transition animations
+        }}
+      >
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Player" component={PlayerScreen} />
-        <Stack.Screen name="LocalPlayer" component={LocalPlayerScreen} /> 
+        <Stack.Screen name="LocalPlayer" component={LocalPlayerScreen} options={{ headerShown: false }}/> 
       </Stack.Navigator>
     </NavigationContainer>
   );
