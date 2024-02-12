@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; // Import Image component
 import { PermissionsAndroid } from 'react-native';
-import TrackPlayer from 'react-native-track-player'; 
+import TrackPlayer from 'react-native-track-player';
+import PlayerControls from '../components/PlayerControls';
+import { Bordertop } from '../components/Bordertop'; 
+import DocumentPicker from 'react-native-document-picker';
 
 const LocalPlayerScreen = ({ navigation }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [progress, setProgress] = useState(0);
+    const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     requestStoragePermission();
@@ -22,8 +26,23 @@ const LocalPlayerScreen = ({ navigation }) => {
     }
 
     return () => {
-      TrackPlayer.destroy();
+      TrackPlayer.stop();
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      const position = await TrackPlayer.getPosition();
+      const duration = await TrackPlayer.getDuration();
+      setProgress(position);
+      setDuration(duration);
+    };
+    
+    fetchProgress();
+
+    // fetch progress in song timeline
+    const progressInterval = setInterval(fetchProgress, 1000);
+    return () => clearInterval(progressInterval);
   }, []);
 
   const requestStoragePermission = async () => {
@@ -109,36 +128,59 @@ const LocalPlayerScreen = ({ navigation }) => {
     selectFile();
   };
 
+  // need to implement seeking within the track
+  const handleSeek = async (value) => {
+    await TrackPlayer.seekTo(value);
+  };
+  
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Local Player Screen</Text>
-      <Button title="Select File" onPress={selectFile} />
-      <Button title="Swap Track" onPress={swapTrack} />
-      {selectedFile && (
-        <View>
-          <Text style={styles.selectedFile}>Selected File: {selectedFile.name}</Text>
-          <Button title={isPlaying ? 'Pause' : 'Play'} onPress={playFile} />
-        </View>
-      )}
+    <View style={styles.overlay}>
+      <Bordertop/>
+    <TouchableOpacity style={styles.button} onPress={selectFile}>
+      <Text style={styles.buttonText}>SELECT FILE</Text>
+    </TouchableOpacity>
+      <View style={styles.albumArtPlaceholder} />
+      <PlayerControls
+        isPlaying={isPlaying}
+        selectedFile={selectedFile}
+        progress={progress}
+        duration={duration}
+        onPlayPause={playFile}
+        onSeek={handleSeek}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    justifyContent: 'flex-start', 
+    alignItems: 'center',
+    width: '100%',
+  },
+  albumArtPlaceholder: {
+    width: 300, 
+    height: 300,
+    backgroundColor: 'transparent',
+    borderColor: '#000', 
+    borderWidth: 2,
+    marginTop: 25,
+  },
+  button: {
+    backgroundColor: '#000',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    marginTop: 20,
   },
-  title: {
-    fontSize: 24,
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  selectedFile: {
-    fontSize: 16,
-    marginBottom: 10,
   },
 });
 
