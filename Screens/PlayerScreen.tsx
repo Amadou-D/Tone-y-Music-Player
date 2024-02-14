@@ -5,6 +5,7 @@ import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 
 const PlayerScreen = ({ navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [onlineUrl, setOnlineUrl] = useState('');
   const playbackState = usePlaybackState();
 
@@ -24,6 +25,7 @@ const PlayerScreen = ({ navigation }) => {
   useEffect(() => {
     console.log('Playback State:', playbackState);
     setIsPlaying(playbackState === TrackPlayer.STATE_PLAYING);
+    setIsPaused(playbackState === TrackPlayer.STATE_PAUSED);
   }, [playbackState]);
 
   const playOnlineTrack = async () => {
@@ -41,7 +43,7 @@ const PlayerScreen = ({ navigation }) => {
         artist: 'Artist Name',
       });
 
-      setIsPlaying(true);
+      await TrackPlayer.play();
     } catch (err) {
       console.error('Error playing online audio:', err);
     }
@@ -49,22 +51,23 @@ const PlayerScreen = ({ navigation }) => {
 
   const togglePlayback = async () => {
     try {
-      if (isPlaying) {
+      const currentTrack = await TrackPlayer.getCurrentTrack();
+
+      if (currentTrack) {
+        // Player is already playing, pause the track
         await TrackPlayer.pause();
       } else {
+        // Player is not playing, start playing the track
         await TrackPlayer.play();
+
+        // If it was paused, resume from the current position
+        const position = await TrackPlayer.getPosition();
+        if (position > 0) {
+          await TrackPlayer.seekTo(position);
+        }
       }
     } catch (error) {
       console.error('Error toggling playback:', error);
-    }
-  };
-
-  const pausePlayback = async () => {
-    try {
-      await TrackPlayer.pause();
-      setIsPlaying(false);
-    } catch (error) {
-      console.error('Error pausing playback:', error);
     }
   };
 
@@ -79,13 +82,25 @@ const PlayerScreen = ({ navigation }) => {
       />
       <Button style={styles.button} title="Play Online Track" onPress={playOnlineTrack} />
       <View style={styles.controls}>
-        <Button
-          style={styles.button}
-          title={isPlaying ? 'Pause' : 'Play'}
-          onPress={togglePlayback}
-        />
-        {isPlaying && (
-          <Button style={styles.button} title="Pause" onPress={pausePlayback} />
+        {isPlaying ? (
+          <Button
+            style={styles.button}
+            title="Pause"
+            onPress={togglePlayback}
+          />
+        ) : (
+          <Button
+            style={styles.button}
+            title="Play"
+            onPress={togglePlayback}
+          />
+        )}
+        {isPaused && (
+          <Button
+            style={styles.button}
+            title="Resume"
+            onPress={togglePlayback}
+          />
         )}
       </View>
     </View>
