@@ -1,13 +1,14 @@
 // PlayerScreen.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput, StyleSheet } from 'react-native';
-import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
+import TrackPlayer, { usePlaybackState, useTrackPlayerProgress } from 'react-native-track-player';
 
 const PlayerScreen = ({ navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [onlineUrl, setOnlineUrl] = useState('');
   const playbackState = usePlaybackState();
+  const { position } = useTrackPlayerProgress();
 
   useEffect(() => {
     const setupTrackPlayer = async () => {
@@ -51,7 +52,7 @@ const PlayerScreen = ({ navigation }) => {
 
   const togglePlayback = async () => {
     try {
-      const currentTrack = await TrackPlayer.getCurrentTrack();
+      const currentTrack = await TrackPlayer.getActiveTrack();
 
       if (currentTrack) {
         // Player is already playing, pause the track
@@ -61,7 +62,6 @@ const PlayerScreen = ({ navigation }) => {
         await TrackPlayer.play();
 
         // If it was paused, resume from the current position
-        const position = await TrackPlayer.getPosition();
         if (position > 0) {
           await TrackPlayer.seekTo(position);
         }
