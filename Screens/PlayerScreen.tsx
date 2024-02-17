@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
-import TrackPlayer, { Event, usePlaybackState } from 'react-native-track-player';
+import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
 import { Bordertop } from '../components/Bordertop';
-import PlayerControls from '../components/PlayerControls';
 
 const PlayerScreen = ({ navigation }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [onlineUrl, setOnlineUrl] = useState('');
-  const [trackLoaded, setTrackLoaded] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [trackProgress, setTrackProgress] = useState(0);
   const playbackState = usePlaybackState();
 
   useEffect(() => {
@@ -16,98 +14,81 @@ const PlayerScreen = ({ navigation }) => {
       try {
         await TrackPlayer.setupPlayer();
         console.log('TrackPlayer setup successfully.');
-        TrackPlayer.addEventListener(Event.PlaybackState, handlePlaybackState);
-        TrackPlayer.addEventListener(Event.Progress, handleProgress);
       } catch (error) {
         console.error('Error setting up TrackPlayer:', error);
       }
     };
 
     setupTrackPlayer();
-
-    return () => {
-      TrackPlayer.destroy();
-    };
   }, []);
 
-  const handlePlaybackState = async () => {
-    // Handle playback state changes if needed
-  };
+  useEffect(() => {
+    console.log('Playback State:', playbackState);
+    setIsPlaying(playbackState === TrackPlayer.STATE_PLAYING);
+    setIsPaused(playbackState === TrackPlayer.STATE_PAUSED);
+  }, [playbackState]);
 
-  const handleProgress = ({ position, duration }) => {
-    setTrackProgress(position);
-  };
-
-  const playOrPause = useCallback(async () => {
-    try {
-      if (!onlineUrl || loading) {
-        console.warn('Invalid online audio URL or already loading');
-        return;
-      }
-
-      if (playbackState === TrackPlayer.STATE_PLAYING) {
-        await TrackPlayer.pause();
-      } else {
-        if (trackLoaded) {
-          await TrackPlayer.play();
-        } else {
-          setLoading(true);
-          await TrackPlayer.reset();
-          await TrackPlayer.add({
-            id: 'track1',
-            url: onlineUrl,
-            title: 'Online Track',
-            artist: 'Artist Name',
-          });
-
-          await TrackPlayer.play();
-          setTrackLoaded(true);
-          setLoading(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling play/pause:', error);
+  const playOnlineTrack = async () => {
+    if (!onlineUrl) {
+      console.warn('Invalid online audio URL');
+      return;
     }
-  }, [onlineUrl, loading, playbackState, trackLoaded]);
+
+    try {
+      await TrackPlayer.reset();
+      await TrackPlayer.add({
+        id: 'track1',
+        url: onlineUrl,
+        title: 'Online Track',
+        artist: 'Artist Name',
+      });
+
+      await TrackPlayer.play();
+    } catch (err) {
+      console.error('Error playing online audio:', err);
+    }
+  };
+
+  const pauseTrack = async () => {
+    try {
+      await TrackPlayer.pause();
+    } catch (error) {
+      console.error('Error pausing track:', error);
+    }
+  };
+
+  const playTrack = async () => {
+    try {
+      await TrackPlayer.play();
+    } catch (error) {
+      console.error('Error playing track:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Bordertop />
       <Text style={styles.title}>Tone-y Music Player</Text>
-
-      <View style={styles.logoContainer}>
-        <Image source={{ uri: 'https://i.ibb.co/8XvtKYj/toney.png' }} style={styles.logo} />
-      </View>
-
       <TextInput
         style={styles.input}
         placeholder="Enter Online Audio URL"
         onChangeText={(text) => setOnlineUrl(text)}
         value={onlineUrl}
-        editable={!loading && !trackLoaded}
       />
-      <TouchableOpacity
-        style={styles.button}
-        onPress={playOrPause}
-        disabled={loading || trackLoaded}>
-        <Text style={styles.buttonText}>
-          {loading ? 'Loading...' : trackLoaded ? 'Track Loaded' : 'Load Online Track'}
-        </Text>
+      <TouchableOpacity style={styles.button} onPress={playOnlineTrack}>
+        <Text style={styles.buttonText}> Load Online Track</Text>
       </TouchableOpacity>
-
-      {/* Integrate PlayerControls component */}
-      {trackLoaded && (
-        <PlayerControls
-          isPlaying={playbackState === TrackPlayer.STATE_PLAYING}
-          selectedFile={null} // Assuming selectedFile is not used for online tracks
-          progress={trackProgress}
-          duration={0} // Set duration as needed
-          onPlayPause={playOrPause}
-          onSeek={(value) => {
-            // You can handle seeking logic here if needed for online tracks
-          }}
-        />
-      )}
+      <View style={styles.logoContainer}>
+        <Image source={{ uri: 'https://i.ibb.co/8XvtKYj/toney.png' }} style={styles.logo} />
+      </View>
+      <View style={styles.controls}>
+        <TouchableOpacity style={styles.playButton} onPress={playTrack}>
+          <Text style={styles.buttonText}>Play</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.pauseButton} onPress={pauseTrack}>
+          <Text style={styles.buttonText}>Pause</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -115,7 +96,7 @@ const PlayerScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center', // Center items both vertically and horizontally
     alignItems: 'center',
     backgroundColor: 'white',
   },
@@ -136,7 +117,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: 'black',
-    width: '70%',
+    width: '70%', // Adjusted width
     padding: 10,
     marginVertical: 10,
   },
@@ -144,28 +125,25 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
-  controlsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  playButton: {
+    backgroundColor: 'black',
+    width: '45%', // Adjusted width
+    padding: 10,
+    marginVertical: 5,
+    marginRight: '5%', // Added marginRight
   },
-  playPauseButton: {
-    marginHorizontal: 10,
+  pauseButton: {
+    backgroundColor: 'black',
+    width: '45%', // Adjusted width
+    padding: 10,
+    marginVertical: 5,
+    marginLeft: '5%', // Added marginLeft
   },
-  timelineContainer: {
-    flex: 1,
-    height: 2,
-    marginHorizontal: 10,
-    backgroundColor: '#3d3d3d',
-    flexDirection: 'row',
-  },
-  timelineBar: {
-    height: 2,
-    backgroundColor: '#fff',
-    flex: 1,
-  },
-  timelineProgress: {
-    height: 2,
-    backgroundColor: '#008080',
+  controls: {
+    flexDirection: 'row', // Changed to row layout
+    justifyContent: 'center', // Centered items horizontally
+    width: '70%',
+    marginTop: 10, // Added marginTop for better spacing
   },
   logoContainer: {
     alignItems: 'center',
