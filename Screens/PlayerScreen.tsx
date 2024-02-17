@@ -70,10 +70,6 @@ const PlayerScreen = ({ navigation }) => {
     }
   }, [onlineUrl, loading, playbackState, trackLoaded]);
 
-  const handleSeek = (value) => {
-    // You can handle seeking logic here if needed for online tracks
-  };
-
   return (
     <View style={styles.container}>
       <Bordertop />
@@ -100,13 +96,18 @@ const PlayerScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Integrate PlayerControls component */}
-      <PlayerControls
-        isPlaying={playbackState === TrackPlayer.STATE_PLAYING}
-        progress={trackProgress}
-        duration={0} // Set duration as needed
-        onPlayPause={playOrPause}
-        onSeek={handleSeek}
-      />
+      {trackLoaded && (
+        <PlayerControls
+          isPlaying={playbackState === TrackPlayer.STATE_PLAYING}
+          selectedFile={null} // Assuming selectedFile is not used for online tracks
+          progress={trackProgress}
+          duration={0} // Set duration as needed
+          onPlayPause={playOrPause}
+          onSeek={(value) => {
+            // You can handle seeking logic here if needed for online tracks
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -142,6 +143,29 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     textAlign: 'center',
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  playPauseButton: {
+    marginHorizontal: 10,
+  },
+  timelineContainer: {
+    flex: 1,
+    height: 2,
+    marginHorizontal: 10,
+    backgroundColor: '#3d3d3d',
+    flexDirection: 'row',
+  },
+  timelineBar: {
+    height: 2,
+    backgroundColor: '#fff',
+    flex: 1,
+  },
+  timelineProgress: {
+    height: 2,
+    backgroundColor: '#008080',
   },
   logoContainer: {
     alignItems: 'center',
