@@ -15,13 +15,6 @@ const LocalPlayerScreen = ({ navigation }) => {
   useEffect(() => {
     requestStoragePermission();
 
-    // Check if TrackPlayer is already initialized
-    TrackPlayer.setupPlayer().then(() => {
-      console.log('TrackPlayer setup successfully.');
-    }).catch(error => {
-      console.error('Error setting up TrackPlayer:', error);
-    });
-
     return () => {
       TrackPlayer.stop();
     };
