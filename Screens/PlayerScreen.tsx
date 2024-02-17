@@ -1,108 +1,112 @@
-// PlayerScreen.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, TextInput, StyleSheet } from 'react-native';
-import TrackPlayer, { usePlaybackState, useTrackPlayerProgress } from 'react-native-track-player';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
+import TrackPlayer, { Event, usePlaybackState } from 'react-native-track-player';
+import { Bordertop } from '../components/Bordertop';
+import PlayerControls from '../components/PlayerControls';
 
 const PlayerScreen = ({ navigation }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [onlineUrl, setOnlineUrl] = useState('');
+  const [trackLoaded, setTrackLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [trackProgress, setTrackProgress] = useState(0);
   const playbackState = usePlaybackState();
-  const { position } = useTrackPlayerProgress();
 
   useEffect(() => {
     const setupTrackPlayer = async () => {
       try {
         await TrackPlayer.setupPlayer();
         console.log('TrackPlayer setup successfully.');
+        TrackPlayer.addEventListener(Event.PlaybackState, handlePlaybackState);
+        TrackPlayer.addEventListener(Event.Progress, handleProgress);
       } catch (error) {
         console.error('Error setting up TrackPlayer:', error);
       }
     };
 
     setupTrackPlayer();
+
+    return () => {
+      TrackPlayer.destroy();
+    };
   }, []);
 
-  useEffect(() => {
-    console.log('Playback State:', playbackState);
-    setIsPlaying(playbackState === TrackPlayer.STATE_PLAYING);
-    setIsPaused(playbackState === TrackPlayer.STATE_PAUSED);
-  }, [playbackState]);
-
-  const playOnlineTrack = async () => {
-    if (!onlineUrl) {
-      console.warn('Invalid online audio URL');
-      return;
-    }
-
-    try {
-      await TrackPlayer.reset();
-      await TrackPlayer.add({
-        id: 'track1',
-        url: onlineUrl,
-        title: 'Online Track',
-        artist: 'Artist Name',
-      });
-
-      await TrackPlayer.play();
-    } catch (err) {
-      console.error('Error playing online audio:', err);
-    }
+  const handlePlaybackState = async () => {
+    // Handle playback state changes if needed
   };
 
-  const togglePlayback = async () => {
-    try {
-      const currentTrack = await TrackPlayer.getActiveTrack();
+  const handleProgress = ({ position, duration }) => {
+    setTrackProgress(position);
+  };
 
-      if (currentTrack) {
-        // Player is already playing, pause the track
+  const playOrPause = useCallback(async () => {
+    try {
+      if (!onlineUrl || loading) {
+        console.warn('Invalid online audio URL or already loading');
+        return;
+      }
+
+      if (playbackState === TrackPlayer.STATE_PLAYING) {
         await TrackPlayer.pause();
       } else {
-        // Player is not playing, start playing the track
-        await TrackPlayer.play();
+        if (trackLoaded) {
+          await TrackPlayer.play();
+        } else {
+          setLoading(true);
+          await TrackPlayer.reset();
+          await TrackPlayer.add({
+            id: 'track1',
+            url: onlineUrl,
+            title: 'Online Track',
+            artist: 'Artist Name',
+          });
 
-        // If it was paused, resume from the current position
-        if (position > 0) {
-          await TrackPlayer.seekTo(position);
+          await TrackPlayer.play();
+          setTrackLoaded(true);
+          setLoading(false);
         }
       }
     } catch (error) {
-      console.error('Error toggling playback:', error);
+      console.error('Error toggling play/pause:', error);
     }
+  }, [onlineUrl, loading, playbackState, trackLoaded]);
+
+  const handleSeek = (value) => {
+    // You can handle seeking logic here if needed for online tracks
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Music Player App</Text>
+      <Bordertop />
+      <Text style={styles.title}>Tone-y Music Player</Text>
+
+      <View style={styles.logoContainer}>
+        <Image source={{ uri: 'https://i.ibb.co/8XvtKYj/toney.png' }} style={styles.logo} />
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Enter Online Audio URL"
         onChangeText={(text) => setOnlineUrl(text)}
         value={onlineUrl}
+        editable={!loading && !trackLoaded}
       />
-      <Button style={styles.button} title="Play Online Track" onPress={playOnlineTrack} />
-      <View style={styles.controls}>
-        {isPlaying ? (
-          <Button
-            style={styles.button}
-            title="Pause"
-            onPress={togglePlayback}
-          />
-        ) : (
-          <Button
-            style={styles.button}
-            title="Play"
-            onPress={togglePlayback}
-          />
-        )}
-        {isPaused && (
-          <Button
-            style={styles.button}
-            title="Resume"
-            onPress={togglePlayback}
-          />
-        )}
-      </View>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={playOrPause}
+        disabled={loading || trackLoaded}>
+        <Text style={styles.buttonText}>
+          {loading ? 'Loading...' : trackLoaded ? 'Track Loaded' : 'Load Online Track'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Integrate PlayerControls component */}
+      <PlayerControls
+        isPlaying={playbackState === TrackPlayer.STATE_PLAYING}
+        progress={trackProgress}
+        duration={0} // Set duration as needed
+        onPlayPause={playOrPause}
+        onSeek={handleSeek}
+      />
     </View>
   );
 };
@@ -110,31 +114,46 @@ const PlayerScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: 'white',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: 'black',
   },
   input: {
-    height: 40,
+    height: 30,
     borderColor: 'gray',
     borderWidth: 1,
     marginVertical: 10,
     padding: 5,
-    width: '100%',
+    width: '70%',
+    backgroundColor: 'white',
   },
   button: {
+    backgroundColor: 'black',
+    width: '70%',
+    padding: 10,
     marginVertical: 10,
-    width: '100%',
   },
-  controls: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+    backgroundColor: 'black',
+    padding: 10,
+    borderRadius: 10,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
 });
 

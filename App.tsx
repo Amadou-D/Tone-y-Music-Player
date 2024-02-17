@@ -17,7 +17,7 @@ const App = () => {
         }}
       >
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Player" component={PlayerScreen} />
+        <Stack.Screen name="Player" component={PlayerScreen} options={{headerShown: false}} />
         <Stack.Screen name="LocalPlayer" component={LocalPlayerScreen} options={{ headerShown: false }}/> 
       </Stack.Navigator>
     </NavigationContainer>
