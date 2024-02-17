@@ -16,14 +16,11 @@ const LocalPlayerScreen = ({ navigation }) => {
     requestStoragePermission();
 
     // Check if TrackPlayer is already initialized
-    if (!TrackPlayer.isInitialized) {
-      // Initialize TrackPlayer
-      TrackPlayer.setupPlayer().then(() => {
-        console.log('TrackPlayer setup successfully.');
-      }).catch(error => {
-        console.error('Error setting up TrackPlayer:', error);
-      });
-    }
+    TrackPlayer.setupPlayer().then(() => {
+      console.log('TrackPlayer setup successfully.');
+    }).catch(error => {
+      console.error('Error setting up TrackPlayer:', error);
+    });
 
     return () => {
       TrackPlayer.stop();
@@ -80,10 +77,11 @@ const LocalPlayerScreen = ({ navigation }) => {
   
       await TrackPlayer.reset(); // Clear the current queue
   
+      const title = res.name || 'Unknown Title'; // Provide a default title if res.name is null
       const track = {
         id: 'local_audio',
         url: res.uri,
-        title: res.name,
+        title: title,
         artist: '',
       };
   
