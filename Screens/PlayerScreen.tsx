@@ -96,7 +96,6 @@ const PlayerScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Center items both vertically and horizontally
     alignItems: 'center',
     backgroundColor: 'white',
   },
@@ -142,8 +141,7 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: 'row', // Changed to row layout
     justifyContent: 'center', // Centered items horizontally
-    width: '70%',
-    marginTop: 10, // Added marginTop for better spacing
+    width: '70%'
   },
   logoContainer: {
     alignItems: 'center',
