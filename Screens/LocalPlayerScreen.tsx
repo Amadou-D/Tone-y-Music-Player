@@ -21,9 +21,6 @@ const LocalPlayerScreen = ({ navigation }) => {
           console.error('Error setting up TrackPlayer:', error);
       });
 
-    return () => {
-      TrackPlayer.stop();
-    };
   }, []);
 
   useEffect(() => {
