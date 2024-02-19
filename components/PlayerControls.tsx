@@ -7,11 +7,7 @@ import { faPlay, faPause, faCircle } from '@fortawesome/free-solid-svg-icons';
 import TrackPlayer, { State } from 'react-native-track-player';
 import { useSelectedFile } from './SelectedFileContext';
 
-interface PlayerControlsProps {
-  onSeek: (value: number) => void;
-}
-
-const PlayerControls: React.FC<PlayerControlsProps> = ({ onSeek }) => {
+const PlayerControls: React.FC = () => {
   const { selectedFile } = useSelectedFile();
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -69,7 +65,11 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ onSeek }) => {
       setIsPlaying(true);
     }
   };
-  
+  const handleSeek = async (event: any) => {
+    const newPosition = (event.nativeEvent.locationX / event.currentTarget.offsetWidth) * duration;
+    await TrackPlayer.seekTo(newPosition);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.controlsContainer}>
@@ -80,7 +80,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({ onSeek }) => {
           <View style={[styles.timelineBar, { width: `${(progress / duration) * 100}%` }]} />
           <TouchableOpacity
             style={[styles.timelineKnob, { left: `${(progress / duration) * 100}%` }]}
-            onPress={(event) => onSeek((event.nativeEvent.locationX / event.currentTarget.offsetWidth) * duration)}
+            onPress={handleSeek}
           >
             <FontAwesomeIcon icon={faCircle} color="#fff" />
           </TouchableOpacity>

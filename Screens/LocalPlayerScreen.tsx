@@ -6,25 +6,22 @@ import PlayerControls from '../components/PlayerControls';
 import { Bordertop } from '../components/Bordertop'; 
 import DocumentPicker from 'react-native-document-picker';
 import { useSelectedFile } from '../components/SelectedFileContext';
-import { State } from 'react-native-track-player';
 
 
 const LocalPlayerScreen: React.FC = () => {
+    const [isTrackPlayerInitialized, setIsTrackPlayerInitialized] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const { selectedFile, setSelectedFile } = useSelectedFile();
-    const [progress, setProgress] = useState(0);
-    const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     requestStoragePermission();
 
-    TrackPlayer.setupPlayer().then(() => {
-      console.log('TrackPlayer setup successfully.');
-      }).catch(error => {
-          console.error('Error setting up TrackPlayer:', error);
-      });
+    if (!isTrackPlayerInitialized) {
+      setupTrackPlayer();
+      setIsTrackPlayerInitialized(true);
+    }
+  }, [isTrackPlayerInitialized]);
 
-  }, []);
 
   const requestStoragePermission = async () => {
     try {
@@ -48,6 +45,16 @@ const LocalPlayerScreen: React.FC = () => {
     }
   };
   
+  
+  const setupTrackPlayer = async () => {
+    try {
+      await TrackPlayer.setupPlayer();
+      console.log('TrackPlayer setup successfully.');
+    } catch (error) {
+      console.error('Error setting up TrackPlayer:', error);
+    }
+  };
+
   const selectFile = async () => {
     try {
       const res = await DocumentPicker.pickSingle({
@@ -81,10 +88,6 @@ const LocalPlayerScreen: React.FC = () => {
     }
   };
 
-  const handleSeek = async (value: number) => {
-    await TrackPlayer.seekTo(value);
-  };
-
   return (
     <View style={styles.overlay}>
       <Bordertop />
@@ -92,7 +95,7 @@ const LocalPlayerScreen: React.FC = () => {
         <Text style={styles.buttonText}>SELECT FILE</Text>
       </TouchableOpacity>
       <View style={styles.albumArtPlaceholder} />
-      <PlayerControls onSeek={handleSeek} />
+      <PlayerControls/>
     </View>
   );
 };
