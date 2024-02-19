@@ -4,11 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from './Screens/WelcomeScreen';
 import PlayerScreen from './Screens/PlayerScreen';
 import LocalPlayerScreen from './Screens/LocalPlayerScreen';
+import { SelectedFileProvider } from './components/SelectedFileContext';
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
+    <SelectedFileProvider>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Welcome"
@@ -21,6 +23,7 @@ const App = () => {
         <Stack.Screen name="LocalPlayer" component={LocalPlayerScreen} options={{ headerShown: false }}/> 
       </Stack.Navigator>
     </NavigationContainer>
+    </SelectedFileProvider>
   );
 };
 

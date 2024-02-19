@@ -5,10 +5,13 @@ import TrackPlayer from 'react-native-track-player';
 import PlayerControls from '../components/PlayerControls';
 import { Bordertop } from '../components/Bordertop'; 
 import DocumentPicker from 'react-native-document-picker';
+import { useSelectedFile } from '../components/SelectedFileContext';
+import { State } from 'react-native-track-player';
 
-const LocalPlayerScreen = ({ navigation }) => {
+
+const LocalPlayerScreen: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const { selectedFile, setSelectedFile } = useSelectedFile();
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
 
@@ -27,8 +30,10 @@ const LocalPlayerScreen = ({ navigation }) => {
     const fetchProgress = async () => {
       const position = await TrackPlayer.getPosition();
       const duration = await TrackPlayer.getDuration();
+      const playbackState = await TrackPlayer.getState();
       setProgress(position);
       setDuration(duration);
+      setIsPlaying(playbackState === State.Playing);
     };
     
     fetchProgress();
