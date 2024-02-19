@@ -26,23 +26,6 @@ const LocalPlayerScreen: React.FC = () => {
 
   }, []);
 
-  useEffect(() => {
-    const fetchProgress = async () => {
-      const position = await TrackPlayer.getPosition();
-      const duration = await TrackPlayer.getDuration();
-      const playbackState = await TrackPlayer.getState();
-      setProgress(position);
-      setDuration(duration);
-      setIsPlaying(playbackState === State.Playing);
-    };
-    
-    fetchProgress();
-
-    // fetch progress in song timeline
-    const progressInterval = setInterval(fetchProgress, 1000);
-    return () => clearInterval(progressInterval);
-  }, []);
-
   const requestStoragePermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -97,56 +80,19 @@ const LocalPlayerScreen: React.FC = () => {
       }
     }
   };
-  
 
-  const playFile = async () => {
-    if (!selectedFile) {
-      console.warn('NO FILE SELECTED');
-      return;
-    }
-
-    if (isPlaying) {
-      await TrackPlayer.pause();
-      setIsPlaying(false);
-    } else {
-      const track = {
-        id: 'local_audio',
-        url: selectedFile.uri,
-        title: selectedFile.name,
-        artist: '',
-      };
-
-      await TrackPlayer.add([track]);
-      await TrackPlayer.play();
-
-      setIsPlaying(true);
-    }
-  };
-
-  const swapTrack = () => {
-    selectFile();
-  };
-
-  // need to implement seeking within the track
-  const handleSeek = async (value) => {
+  const handleSeek = async (value: number) => {
     await TrackPlayer.seekTo(value);
   };
-  
+
   return (
     <View style={styles.overlay}>
-      <Bordertop/>
-    <TouchableOpacity style={styles.button} onPress={selectFile}>
-      <Text style={styles.buttonText}>SELECT FILE</Text>
-    </TouchableOpacity>
+      <Bordertop />
+      <TouchableOpacity style={styles.button} onPress={selectFile}>
+        <Text style={styles.buttonText}>SELECT FILE</Text>
+      </TouchableOpacity>
       <View style={styles.albumArtPlaceholder} />
-      <PlayerControls
-        isPlaying={isPlaying}
-        selectedFile={selectedFile}
-        progress={progress}
-        duration={duration}
-        onPlayPause={playFile}
-        onSeek={handleSeek}
-      />
+      <PlayerControls onSeek={handleSeek} />
     </View>
   );
 };

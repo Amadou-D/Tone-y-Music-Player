@@ -1,27 +1,42 @@
-import React from 'react';
+// PlayerControls.tsx
+
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
-import { faPause } from '@fortawesome/free-solid-svg-icons/faPause';
-import { faCircle } from '@fortawesome/free-solid-svg-icons/faCircle';
+import { faPlay, faPause, faCircle } from '@fortawesome/free-solid-svg-icons';
+import TrackPlayer, { State } from 'react-native-track-player';
+import { useSelectedFile } from './SelectedFileContext';
 
 interface PlayerControlsProps {
-  isPlaying: boolean;
-  selectedFile: any;
-  progress: number;
-  duration: number;
-  onPlayPause: () => void;
   onSeek: (value: number) => void;
 }
 
-const PlayerControls: React.FC<PlayerControlsProps> = ({
-  isPlaying,
-  selectedFile,
-  progress,
-  duration,
-  onPlayPause,
-  onSeek,
-}) => {
+const PlayerControls: React.FC<PlayerControlsProps> = ({ onSeek }) => {
+  const { selectedFile } = useSelectedFile();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      const playbackState = await TrackPlayer.getState();
+      setIsPlaying(playbackState === State.Playing);
+
+      const currentProgress = await TrackPlayer.getPosition();
+      const currentDuration = await TrackPlayer.getDuration();
+      
+      setProgress(currentProgress);
+      setDuration(currentDuration);
+    };
+
+    fetchProgress();
+
+    const progressInterval = setInterval(fetchProgress, 1000);
+    return () => clearInterval(progressInterval);
+  }, []);
+
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '00:00';
 
@@ -31,28 +46,48 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     return `${minutes < 10 ? '0' + minutes : minutes}:${remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds}`;
   };
 
+  const playPauseToggle = async () => {
+    if (!selectedFile) {
+      console.warn('NO FILE SELECTED');
+      return;
+    }
+
+    if (isPlaying) {
+      await TrackPlayer.pause();
+      setIsPlaying(false);
+    } else {
+      const track = {
+        id: 'local_audio',
+        url: selectedFile.uri,
+        title: selectedFile.name,
+        artist: '',
+      };
+
+      await TrackPlayer.add([track]);
+      await TrackPlayer.play();
+
+      setIsPlaying(true);
+    }
+  };
+  
   return (
-    <>
-      {selectedFile && (
-        <View style={styles.container}>
-          <View style={styles.controlsContainer}>
-            <TouchableOpacity onPress={onPlayPause} style={styles.playPauseButton}>
-              <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} color="#fff" size={28}/>
-            </TouchableOpacity>
-            <View style={styles.timelineContainer}>
-              <View style={[styles.timelineBar, { width: `${(progress / duration) * 100}%` }]} />
-              <TouchableOpacity
-                style={[styles.timelineKnob, { left: `${(progress / duration) * 100}%` }]}
-                onPress={(event) => onSeek((event.nativeEvent.locationX / event.currentTarget.offsetWidth) * duration)}
-              >
-                <FontAwesomeIcon icon={faCircle} color="#fff"/>
-              </TouchableOpacity>
-            </View>
-            <Text>{formatTime(progress)}</Text>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.controlsContainer}>
+        <TouchableOpacity onPress={playPauseToggle} style={styles.playPauseButton}>
+          <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} color="#fff" size={28} />
+        </TouchableOpacity>
+        <View style={styles.timelineContainer}>
+          <View style={[styles.timelineBar, { width: `${(progress / duration) * 100}%` }]} />
+          <TouchableOpacity
+            style={[styles.timelineKnob, { left: `${(progress / duration) * 100}%` }]}
+            onPress={(event) => onSeek((event.nativeEvent.locationX / event.currentTarget.offsetWidth) * duration)}
+          >
+            <FontAwesomeIcon icon={faCircle} color="#fff" />
+          </TouchableOpacity>
         </View>
-      )}
-    </>
+        <Text>{formatTime(progress)}</Text>
+      </View>
+    </View>
   );
 };
 
@@ -90,7 +125,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
   },
-  
 });
 
 export default PlayerControls;
