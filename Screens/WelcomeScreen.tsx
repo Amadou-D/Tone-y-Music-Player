@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Modal, TextInput } from 'react-native';
 import { Logo } from '../components/Logo'; 
 import { Bordertop } from '../components/Bordertop'; 
+import PlayerControls from '../components/PlayerControls';
 
 
 const WelcomeScreen = ({ navigation }) => {
@@ -57,7 +58,8 @@ const WelcomeScreen = ({ navigation }) => {
         <TouchableOpacity onPress={navigateToPlayerScreen} style={styles.button}>
           <Text style={styles.buttonText}> LINK PLAYER </Text>
         </TouchableOpacity>
-
+        {<PlayerControls onSeek={(value) => console.log('Seek to:', value)} />}
+        
         <TouchableOpacity onPress={isSignedIn ? handleSignOut : handleSignIn} style={styles.signInButton}>
           <Text style={styles.signInButtonText}>{isSignedIn ? 'Sign Out' : 'Sign In'}</Text>
         </TouchableOpacity>
