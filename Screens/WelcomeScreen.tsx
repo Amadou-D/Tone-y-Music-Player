@@ -4,12 +4,13 @@ import { Logo } from '../components/Logo';
 import { Bordertop } from '../components/Bordertop'; 
 import PlayerControls from '../components/PlayerControls';
 
-
 const WelcomeScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [inputName, setInputName] = useState('');
+  const [password, setPassword] = useState('');
   const [isInputVisible, setIsInputVisible] = useState(false);
+  const [error, setError] = useState(null);
 
   const navigateToLocalPlayerScreen = () => {
     navigation.navigate('LocalPlayer');
@@ -28,21 +29,47 @@ const WelcomeScreen = ({ navigation }) => {
     setUserName(null);
   };
 
-  // for log-in
-  const handleInputChange = (text) => {
-    if (text.length <= 8) {
-      setInputName(text);
-    }
-  };
-  
-  const handleSubmit = () => {
-    if (inputName.trim() !== '') {
+  const handleSignUpSubmit = async () => {
+    try {
+      const response = await fetch('https://65f4e64bf54db27bc02273c7.mockapi.io/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: inputName, password: password }),
+      });
+      const data = await response.json();
+      
+      console.log('Signup successful:', data);
       setUserName(inputName);
       setIsSignedIn(true);
       setIsInputVisible(false);
+    } catch (error) {
+      console.error('Error signing up:', error);
+      setError('Error signing up. Please try again.');
     }
   };
 
+  const handleLogin = async () => {
+    try {
+      // Check if the username and password match an existing account in the database
+      const response = await fetch(`https://65f4e64bf54db27bc02273c7.mockapi.io/users?username=${inputName}&password=${password}`);
+      const data = await response.json();
+      if (data.length > 0) {
+        // Login successful
+        setUserName(inputName);
+        setIsSignedIn(true);
+        setIsInputVisible(false);
+      } else {
+        setError('Invalid username or password. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      setError('Error logging in. Please try again.');
+    }
+  };
+  
+  
   return (
     <ImageBackground
       source={{ uri: 'https://i.ibb.co/8XvtKYj/toney.png' }}
@@ -61,7 +88,7 @@ const WelcomeScreen = ({ navigation }) => {
         {<PlayerControls onSeek={(value) => console.log('Seek to:', value)} />}
         
         <TouchableOpacity onPress={isSignedIn ? handleSignOut : handleSignIn} style={styles.signInButton}>
-          <Text style={styles.signInButtonText}>{isSignedIn ? 'Sign Out' : 'Sign In'}</Text>
+          <Text style={styles.signInButtonText}>{isSignedIn ? 'Sign Out' : 'Sign Up / Login'}</Text>
         </TouchableOpacity>
 
         <Text style={styles.userName}>
@@ -77,16 +104,29 @@ const WelcomeScreen = ({ navigation }) => {
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <TextInput
-                placeholder="Enter your user profile"
+                placeholder="Enter your username"
                 style={styles.input}
-                onChangeText={handleInputChange}
+                onChangeText={setInputName}
                 value={inputName}
                 maxLength={8}
               />
+              <TextInput
+                placeholder="Enter your password"
+                style={styles.input}
+                onChangeText={setPassword}
+                value={password}
+                secureTextEntry={true}
+              />
 
-              <TouchableOpacity onPress={handleSubmit} disabled={inputName.trim() === ''} style={[styles.submitButton, inputName.trim() === '' && { backgroundColor: '#ccc' }]}>
-                <Text style={styles.submitButtonText}>Submit</Text>
+              <TouchableOpacity onPress={handleSignUpSubmit} disabled={inputName.trim() === '' || password.trim() === ''} style={[styles.submitButton, (inputName.trim() === '' || password.trim() === '') && { backgroundColor: '#ccc' }]}>
+                <Text style={styles.submitButtonText}>Sign Up</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleLogin} disabled={inputName.trim() === '' || password.trim() === ''} style={[styles.submitButton, (inputName.trim() === '' || password.trim() === '') && { backgroundColor: '#ccc' }]}>
+                <Text style={styles.submitButtonText}>Login</Text>
+              </TouchableOpacity>
+              
+              {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
           </View>
         </Modal>
@@ -101,7 +141,6 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     justifyContent: 'center',
     alignItems: 'center',
-    
   },
   overlay: {
     flex: 1,
@@ -109,19 +148,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', 
     alignItems: 'center',
     width: '100%',
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 20,
-    marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
@@ -187,11 +213,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
+    marginBottom: 10,
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 10,
   },
 });
 
