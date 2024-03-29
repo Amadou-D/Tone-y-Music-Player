@@ -49,14 +49,13 @@ const WelcomeScreen = ({ navigation }) => {
       setError('Error signing up. Please try again.');
     }
   };
-
   const handleLogin = async () => {
     try {
-      // Check if the username and password match an existing account in the database
+      // Make a GET request to check if a user exists with the provided username and password
       const response = await fetch(`https://65f4e64bf54db27bc02273c7.mockapi.io/users?username=${inputName}&password=${password}`);
       const data = await response.json();
+  
       if (data.length > 0) {
-        // Login successful
         setUserName(inputName);
         setIsSignedIn(true);
         setIsInputVisible(false);
@@ -68,6 +67,7 @@ const WelcomeScreen = ({ navigation }) => {
       setError('Error logging in. Please try again.');
     }
   };
+  
   
   
   return (
