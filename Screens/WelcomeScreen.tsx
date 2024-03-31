@@ -29,6 +29,7 @@ const WelcomeScreen = ({ navigation }) => {
     setUserName(null);
   };
 
+  //Make a post request on the mockapi to create a new user on signup 
   const handleSignUpSubmit = async () => {
     try {
       const response = await fetch('https://65f4e64bf54db27bc02273c7.mockapi.io/users', {
