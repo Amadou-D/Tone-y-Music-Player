@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
 import TrackPlayer, { usePlaybackState, STATE_NONE } from 'react-native-track-player';
 import { Bordertop } from '../components/Bordertop';
+import logoImage from '../src/tonylogo.png';
 
 const PlayerScreen = ({ navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -82,7 +83,7 @@ const PlayerScreen = ({ navigation }) => {
         <Text style={styles.buttonText}> Load Online Track</Text>
       </TouchableOpacity>
       <View style={styles.logoContainer}>
-        <Image source={{ uri: 'https://i.ibb.co/8XvtKYj/toney.png' }} style={styles.logo} />
+      <Image source={logoImage} style={styles.logo} />
       </View>
       <View style={styles.controls}>
         <TouchableOpacity style={styles.playButton} onPress={playTrack}>
