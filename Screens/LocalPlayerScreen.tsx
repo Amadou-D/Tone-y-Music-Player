@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; 
+import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; // Import Image component
 import { PermissionsAndroid } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 import PlayerControls from '../components/PlayerControls';
 import { Bordertop } from '../components/Bordertop'; 
 import DocumentPicker from 'react-native-document-picker';
 import { useSelectedFile } from '../components/SelectedFileContext';
+import logo from '../src/toneylogo.png';
+
+
 
 
 const LocalPlayerScreen: React.FC = () => {
