@@ -4,11 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlay, faPause, faCircle } from '@fortawesome/free-solid-svg-icons';
 import TrackPlayer, { State } from 'react-native-track-player';
 
-const LinkPlayerControls: React.FC = () => {
+const LinkPlayerControls = ({ onlineUrl }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [timelineWidth, setTimelineWidth] = useState(0);
+  const [songTitle, setSongTitle] = useState('No Song Selected');
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -39,7 +40,11 @@ const LinkPlayerControls: React.FC = () => {
     return () => clearInterval(progressInterval);
   }, []);
 
-  const formatTime = (seconds: number) => {
+  useEffect(() => {
+    setSongTitle(onlineUrl ? `URL: ${onlineUrl}` : 'No Song Selected');
+  }, [onlineUrl]);
+
+  const formatTime = (seconds) => {
     if (isNaN(seconds)) return '00:00';
 
     const minutes = Math.floor(seconds / 60);
@@ -60,7 +65,7 @@ const LinkPlayerControls: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.songTitle}>No Song Selected</Text>
+      <Text style={styles.songTitle}>{songTitle}</Text>
       <View style={styles.controlsContainer}>
         <TouchableOpacity onPress={playPauseToggle} style={styles.playPauseButton}>
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} color="#fff" size={28} />

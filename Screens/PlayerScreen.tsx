@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
 import TrackPlayer, { usePlaybackState, STATE_NONE } from 'react-native-track-player';
 import { Bordertop } from '../components/Bordertop';
-import PlayerControls from '../components/PlayerControls'; // Import PlayerControls component
+import LinkPlayerControls from '../components/LinkPlayerControls'; // Import LinkPlayerControls component
 import logoImage from '../src/tonylogo.png';
 
 const PlayerScreen = ({ navigation }) => {
   const [onlineUrl, setOnlineUrl] = useState('');
   const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const playbackState = usePlaybackState();
+  const [songTitle, setSongTitle] = useState('No Song Selected');
 
   useEffect(() => {
     const checkPlayerReady = async () => {
@@ -23,6 +23,10 @@ const PlayerScreen = ({ navigation }) => {
 
     checkPlayerReady();
   }, []);
+
+  useEffect(() => {
+    setSongTitle(onlineUrl ? `URL: ${onlineUrl}` : 'No Song Selected');
+  }, [onlineUrl]);
 
   const playOnlineTrack = async () => {
     if (!onlineUrl) {
@@ -59,13 +63,13 @@ const PlayerScreen = ({ navigation }) => {
         <Text style={styles.buttonText}> Load Online Track</Text>
       </TouchableOpacity>
       <View style={styles.trackInfoContainer}>
-        <Text style={styles.trackInfoText}>URL: {onlineUrl}</Text>
+        <Text style={styles.trackInfoText}>{songTitle}</Text>
       </View>
       <View style={styles.logoContainer}>
         <Image source={logoImage} style={styles.logo} />
       </View>
-      {/* Render PlayerControls component */}
-      {isPlayerReady && <PlayerControls />}
+      {/* Pass onlineUrl prop to LinkPlayerControls */}
+      {isPlayerReady && <LinkPlayerControls onlineUrl={onlineUrl} />}
     </View>
   );
 };

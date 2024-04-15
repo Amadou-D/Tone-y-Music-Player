@@ -75,7 +75,7 @@ const PlayerControls: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.songTitle}>{selectedFile ? selectedFile.name : 'No Song Selected'}</Text>
+      <Text style={styles.songTitle}>{selectedFile ? selectedFile.uri : 'No Song Selected'}</Text>
       <View style={styles.controlsContainer}>
         <TouchableOpacity onPress={playPauseToggle} style={styles.playPauseButton}>
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} color="#fff" size={28} />
