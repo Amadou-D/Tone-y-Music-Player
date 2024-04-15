@@ -43,7 +43,7 @@ const LocalPlayerScreen: React.FC = () => {
       console.warn(err);
     }
   };
-  
+
   const setupTrackPlayer = async () => {
     try {
       const state = await TrackPlayer.getState();
@@ -56,42 +56,42 @@ const LocalPlayerScreen: React.FC = () => {
   };;
 
   const selectFile = async () => {
-    if (!isTrackPlayerInitialized) {
-      console.warn('TrackPlayer is not initialized yet.');
-      return;
+  // Wait for the TrackPlayer to be initialized
+  while (!isTrackPlayerInitialized) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  try {
+    const res = await DocumentPicker.pickSingle({
+      type: [DocumentPicker.types.audio],
+    });
+
+    if (isPlaying) {
+      await TrackPlayer.pause();
+      setIsPlaying(false);
     }
-  
-    try {
-      const res = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.audio],
-      });
-  
-      if (isPlaying) {
-        await TrackPlayer.pause();
-        setIsPlaying(false);
-      }
-  
-      await TrackPlayer.reset();
-  
-      const title = res.name || 'Unknown Title';
-      const track = {
-        id: 'local_audio',
-        url: res.uri,
-        title: title,
-        artist: '',
-      };
-  
-      await TrackPlayer.add([track]);
-  
-      setSelectedFile(res);
-    } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        console.log('cancelled');
-      } else {
-        console.error('error', err);
-      }
+
+    await TrackPlayer.reset();
+
+    const title = res.name || 'Unknown Title';
+    const track = {
+      id: 'local_audio',
+      url: res.uri,
+      title: title,
+      artist: '',
+    };
+
+    await TrackPlayer.add([track]);
+
+    setSelectedFile(res);
+  } catch (err) {
+    if (DocumentPicker.isCancel(err)) {
+      console.log('cancelled');
+    } else {
+      console.error('error', err);
     }
-  };
+  }
+};
   return (
     <View style={styles.overlay}>
       <Bordertop />
