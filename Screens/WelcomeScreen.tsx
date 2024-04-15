@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, Modal, TextInput } from 'react-native';
+import { Image, View, Text, TouchableOpacity, StyleSheet, ImageBackground, Modal, TextInput } from 'react-native';
 import { Logo } from '../components/Logo'; 
 import { Bordertop } from '../components/Bordertop'; 
 import PlayerControls from '../components/PlayerControls';
+import logoImage from '../src/tonylogo.png';
 
 const WelcomeScreen = ({ navigation }) => {
   const [userName, setUserName] = useState(null);
@@ -78,6 +79,9 @@ const WelcomeScreen = ({ navigation }) => {
     >
       <View style={styles.overlay}>
         <Bordertop/>
+        <View style={styles.container}>
+      <Image source={logoImage} style={styles.logo} />
+    </View>
         <Logo /> 
         <Text style={styles.subtitle}>Your Music Companion</Text>
         <TouchableOpacity onPress={navigateToLocalPlayerScreen} style={styles.button}>
@@ -225,6 +229,14 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 10,
   },
+  container: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: 300, 
+    height: 160, 
+    resizeMode: 'contain'
+  }
 });
 
 export default WelcomeScreen;

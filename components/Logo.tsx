@@ -13,6 +13,10 @@ const Logo = () => (
       />
     </G>
   </Svg>
+  
+
+
+  
 );
 
 export { Logo };
