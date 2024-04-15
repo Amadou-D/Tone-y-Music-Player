@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; 
 import { PermissionsAndroid } from 'react-native';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { STATE_NONE } from 'react-native-track-player';
 import PlayerControls from '../components/PlayerControls';
 import { Bordertop } from '../components/Bordertop'; 
 import DocumentPicker from 'react-native-document-picker';
 import { useSelectedFile } from '../components/SelectedFileContext';
-
 
 const LocalPlayerScreen: React.FC = () => {
     const [isTrackPlayerInitialized, setIsTrackPlayerInitialized] = useState(false);
@@ -16,12 +15,18 @@ const LocalPlayerScreen: React.FC = () => {
   useEffect(() => {
     requestStoragePermission();
 
-    if (!isTrackPlayerInitialized) {
-      setupTrackPlayer();
-      setIsTrackPlayerInitialized(true);
-    }
-  }, [isTrackPlayerInitialized]);
+    const checkPlayerReady = async () => {
+      const state = await TrackPlayer.getState();
+      if (state === STATE_NONE) {
+        setupTrackPlayer();
+        setIsTrackPlayerInitialized(true);
+      } else {
+        setIsTrackPlayerInitialized(true);
+      }
+    };
 
+    checkPlayerReady();
+  }, []);
 
   const requestStoragePermission = async () => {
     try {
@@ -45,11 +50,9 @@ const LocalPlayerScreen: React.FC = () => {
     }
   };
   
-  
   const setupTrackPlayer = async () => {
     try {
       await TrackPlayer.setupPlayer();
-      console.log('TrackPlayer setup successfully.');
     } catch (error) {
       console.error('Error setting up TrackPlayer:', error);
     }
@@ -66,9 +69,9 @@ const LocalPlayerScreen: React.FC = () => {
         setIsPlaying(false);
       }
   
-      await TrackPlayer.reset(); // Clear the current queue
+      await TrackPlayer.reset();
   
-      const title = res.name || 'Unknown Title'; // Provide a default title if res.name is null
+      const title = res.name || 'Unknown Title';
       const track = {
         id: 'local_audio',
         url: res.uri,
