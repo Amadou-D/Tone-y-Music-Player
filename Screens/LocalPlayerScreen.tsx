@@ -13,19 +13,13 @@ const LocalPlayerScreen: React.FC = () => {
     const { selectedFile, setSelectedFile } = useSelectedFile();
 
   useEffect(() => {
-    requestStoragePermission();
-
-    const checkPlayerReady = async () => {
-      const state = await TrackPlayer.getState();
-      if (state === STATE_NONE) {
-        setupTrackPlayer();
-        setIsTrackPlayerInitialized(true);
-      } else {
-        setIsTrackPlayerInitialized(true);
-      }
+    const initializePlayer = async () => {
+      await requestStoragePermission();
+      await setupTrackPlayer();
+      setIsTrackPlayerInitialized(true);
     };
 
-    checkPlayerReady();
+    initializePlayer();
   }, []);
 
   const requestStoragePermission = async () => {
@@ -98,8 +92,8 @@ const LocalPlayerScreen: React.FC = () => {
   return (
     <View style={styles.overlay}>
       <Bordertop />
-      <TouchableOpacity style={styles.button} onPress={selectFile} disabled={!isTrackPlayerInitialized}>
-       <Text style={styles.buttonText}>SELECT FILE</Text>
+      <TouchableOpacity style={styles.button} onPress={selectFile}>
+        <Text style={styles.buttonText}>SELECT FILE</Text>
       </TouchableOpacity>
       <View style={styles.albumArtPlaceholder} />
       <PlayerControls/>
