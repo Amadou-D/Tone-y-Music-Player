@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
-import TrackPlayer, { usePlaybackState } from 'react-native-track-player';
+import TrackPlayer, { usePlaybackState, STATE_NONE } from 'react-native-track-player';
 import { Bordertop } from '../components/Bordertop';
 
 const PlayerScreen = ({ navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [onlineUrl, setOnlineUrl] = useState('');
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const playbackState = usePlaybackState();
 
   useEffect(() => {
-    const setupTrackPlayer = async () => {
-      try {
+    const checkPlayerReady = async () => {
+      const state = await TrackPlayer.getState();
+      if (state === STATE_NONE) {
         await TrackPlayer.setupPlayer();
-        console.log('TrackPlayer setup successfully.');
-      } catch (error) {
-        console.error('Error setting up TrackPlayer:', error);
+        setIsPlayerReady(true);
+      } else {
+        setIsPlayerReady(true);
       }
     };
 
-    setupTrackPlayer();
+    checkPlayerReady();
   }, []);
 
+
   useEffect(() => {
-    console.log('Playback State:', playbackState);
     setIsPlaying(playbackState === TrackPlayer.STATE_PLAYING);
     setIsPaused(playbackState === TrackPlayer.STATE_PAUSED);
   }, [playbackState]);
+
 
   const playOnlineTrack = async () => {
     if (!onlineUrl) {
