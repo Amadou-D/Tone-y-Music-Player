@@ -51,7 +51,7 @@ const PlayerScreen = ({ navigation }) => {
       <Text style={styles.title}>Tone-y Music Player</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter Online Audio URL(.ogg, mp3, or .wav format)"
+        placeholder="Enter Online Audio URL(.ogg, mp3, or .wav)"
         onChangeText={(text) => setOnlineUrl(text)}
         value={onlineUrl}
       />
@@ -85,12 +85,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 10,
     padding: 5,
-    width: '70%',
+    width: '80%',
     backgroundColor: 'white',
   },
   button: {
     backgroundColor: 'black',
-    width: '70%',
+    width: '80%',
     padding: 10,
     marginVertical: 10,
   },
