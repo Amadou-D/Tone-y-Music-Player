@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; // Import Image component
+import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; 
 import { PermissionsAndroid } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 import PlayerControls from '../components/PlayerControls';
