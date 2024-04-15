@@ -59,6 +59,11 @@ const LocalPlayerScreen: React.FC = () => {
   };
 
   const selectFile = async () => {
+    if (!isTrackPlayerInitialized) {
+      console.warn('TrackPlayer is not initialized yet.');
+      return;
+    }
+  
     try {
       const res = await DocumentPicker.pickSingle({
         type: [DocumentPicker.types.audio],
@@ -90,12 +95,11 @@ const LocalPlayerScreen: React.FC = () => {
       }
     }
   };
-
   return (
     <View style={styles.overlay}>
       <Bordertop />
-      <TouchableOpacity style={styles.button} onPress={selectFile}>
-        <Text style={styles.buttonText}>SELECT FILE</Text>
+      <TouchableOpacity style={styles.button} onPress={selectFile} disabled={!isTrackPlayerInitialized}>
+       <Text style={styles.buttonText}>SELECT FILE</Text>
       </TouchableOpacity>
       <View style={styles.albumArtPlaceholder} />
       <PlayerControls/>
