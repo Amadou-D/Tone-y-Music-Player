@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Image } from 'react-native';
 import TrackPlayer, { usePlaybackState, STATE_NONE } from 'react-native-track-player';
 import { Bordertop } from '../components/Bordertop';
-import PlayerControls from '../components/PlayerControls'; 
+import PlayerControls from '../components/PlayerControls'; // Import PlayerControls component
 import logoImage from '../src/tonylogo.png';
 
 const PlayerScreen = ({ navigation }) => {
@@ -51,13 +51,16 @@ const PlayerScreen = ({ navigation }) => {
       <Text style={styles.title}>Tone-y Music Player</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter Online Audio URL(.ogg, mp3, or .wav)"
+        placeholder="Enter Online Audio URL(.ogg format)"
         onChangeText={(text) => setOnlineUrl(text)}
         value={onlineUrl}
       />
       <TouchableOpacity style={styles.button} onPress={playOnlineTrack}>
         <Text style={styles.buttonText}> Load Online Track</Text>
       </TouchableOpacity>
+      <View style={styles.trackInfoContainer}>
+        <Text style={styles.trackInfoText}>URL: {onlineUrl}</Text>
+      </View>
       <View style={styles.logoContainer}>
         <Image source={logoImage} style={styles.logo} />
       </View>
@@ -85,18 +88,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginVertical: 10,
     padding: 5,
-    width: '80%',
+    width: '70%',
     backgroundColor: 'white',
   },
   button: {
     backgroundColor: 'black',
-    width: '80%',
+    width: '70%',
     padding: 10,
     marginVertical: 10,
   },
   buttonText: {
     color: 'white',
     textAlign: 'center',
+  },
+  trackInfoContainer: {
+    marginVertical: 10,
+  },
+  trackInfoText: {
+    fontSize: 16,
+    color: 'black',
   },
   logoContainer: {
     alignItems: 'center',
