@@ -124,11 +124,11 @@ const WelcomeScreen = ({ navigation }) => {
               />
 
               <TouchableOpacity onPress={handleSignUpSubmit} disabled={inputName.trim() === '' || password.trim() === ''} style={[styles.submitButton, (inputName.trim() === '' || password.trim() === '') && { backgroundColor: '#ccc' }]}>
-                <Text style={styles.submitButtonText}>Sign Up</Text>
+                <Text style={styles.submitButtonText1}>Sign Up</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleLogin} disabled={inputName.trim() === '' || password.trim() === ''} style={[styles.submitButton, (inputName.trim() === '' || password.trim() === '') && { backgroundColor: '#ccc' }]}>
-                <Text style={styles.submitButtonText}>Login</Text>
+                <Text style={styles.submitButtonText2}>Login</Text>
               </TouchableOpacity>
               
               {error && <Text style={styles.errorText}>{error}</Text>}
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    marginTop: 25,
+    marginTop: 15,
     backgroundColor: '#000000',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 40,
-    marginBottom: 10,
+    marginBottom: 5,
   },
   buttonText: {
     color: '#fff',
@@ -218,7 +218,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    marginBottom: 10,
   },
   submitButtonText: {
     color: '#fff',

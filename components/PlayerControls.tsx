@@ -100,7 +100,7 @@ const PlayerControls: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: '17%',
+    bottom: '12%',
     left: 10,
     right: 10,
     backgroundColor: '#000',
