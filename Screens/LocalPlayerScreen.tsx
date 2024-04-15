@@ -19,7 +19,6 @@ const LocalPlayerScreen: React.FC = () => {
     const initializePlayer = async () => {
       await requestStoragePermission();
       await setupTrackPlayer();
-      setIsTrackPlayerInitialized(true);
     };
 
     initializePlayer();
@@ -52,49 +51,51 @@ const LocalPlayerScreen: React.FC = () => {
       const state = await TrackPlayer.getState();
       if (state === TrackPlayer.STATE_NONE) {
         await TrackPlayer.setupPlayer();
+        setIsTrackPlayerInitialized(true); // Moved this line here
       }
     } catch (error) {
       console.error('Error setting up TrackPlayer:', error);
     }
-  };;
+  };
 
   const selectFile = async () => {
-  // Wait for the TrackPlayer to be initialized
-  while (!isTrackPlayerInitialized) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  try {
-    const res = await DocumentPicker.pickSingle({
-      type: [DocumentPicker.types.audio],
-    });
-
-    if (isPlaying) {
-      await TrackPlayer.pause();
-      setIsPlaying(false);
+    // Wait for the TrackPlayer to be initialized
+    while (!isTrackPlayerInitialized) {
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
-
-    await TrackPlayer.reset();
-
-    const title = res.name || 'Unknown Title';
-    const track = {
-      id: 'local_audio',
-      url: res.uri,
-      title: title,
-      artist: '',
-    };
-
-    await TrackPlayer.add([track]);
-
-    setSelectedFile(res);
-  } catch (err) {
-    if (DocumentPicker.isCancel(err)) {
-      console.log('cancelled');
-    } else {
-      console.error('error', err);
+  
+    try {
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.audio],
+      });
+  
+      if (isPlaying) {
+        await TrackPlayer.pause();
+        setIsPlaying(false);
+      }
+  
+      await TrackPlayer.reset();
+  
+      const title = res.name || 'Unknown Title';
+      const track = {
+        id: 'local_audio',
+        url: res.uri,
+        title: title,
+        artist: '',
+      };
+  
+      await TrackPlayer.add([track]);
+  
+      setSelectedFile(res);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('cancelled');
+      } else {
+        console.error('error', err);
+      }
     }
-  }
-};
+  };
+
   return (
     <View style={styles.overlay}>
       <Bordertop />
