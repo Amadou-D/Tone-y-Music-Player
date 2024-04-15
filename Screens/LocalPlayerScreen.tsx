@@ -1,100 +1,119 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native'; 
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { PermissionsAndroid } from 'react-native';
 import TrackPlayer from 'react-native-track-player';
 import PlayerControls from '../components/PlayerControls';
-import { Bordertop } from '../components/Bordertop'; 
+import { Bordertop } from '../components/Bordertop';
 import DocumentPicker from 'react-native-document-picker';
 import { useSelectedFile } from '../components/SelectedFileContext';
 
-
 const LocalPlayerScreen: React.FC = () => {
-    const [isTrackPlayerInitialized, setIsTrackPlayerInitialized] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const { selectedFile, setSelectedFile } = useSelectedFile();
+  const [isTrackPlayerInitialized, setIsTrackPlayerInitialized] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const { selectedFile, setSelectedFile } = useSelectedFile();
+  const [playlist, setPlaylist] = useState([]);
 
   useEffect(() => {
     requestStoragePermission();
+    setupTrackPlayer();
+    const trackChange = TrackPlayer.addEventListener('playback-track-changed', async (data) => {
+        const track = await TrackPlayer.getTrack(data.nextTrack);
+        setCurrentTrack(track);
+    });
 
+    return () => {
+        trackChange.remove();
+    };
+  }, []);
+
+  const setupTrackPlayer = async () => {
     if (!isTrackPlayerInitialized) {
-      setupTrackPlayer();
+      await TrackPlayer.setupPlayer();
       setIsTrackPlayerInitialized(true);
     }
-  }, [isTrackPlayerInitialized]);
-
+  };
 
   const requestStoragePermission = async () => {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: 'PERMISSION REQUIRED',
-          message: 'LET US LOOK',
-          buttonNeutral: 'MAYBE',
-          buttonNegative: 'NO',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('WE IN');
-      } else {
-        console.log('WE NOT IN');
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  };
-  
-  
-  const setupTrackPlayer = async () => {
-    try {
-      await TrackPlayer.setupPlayer();
-      console.log('TrackPlayer setup successfully.');
-    } catch (error) {
-      console.error('Error setting up TrackPlayer:', error);
-    }
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      {
+        title: 'Permission Required',
+        message: 'This application needs access to your storage to download music.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'No',
+        buttonPositive: 'OK',
+      },
+    );
+    console.log(granted === PermissionsAndroid.RESULTS.GRANTED ? 'We in' : 'We not in');
   };
 
-  const selectFile = async () => {
+  const addFileToPlaylist = async () => {
     try {
       const res = await DocumentPicker.pickSingle({
         type: [DocumentPicker.types.audio],
       });
-  
-      if (isPlaying) {
-        await TrackPlayer.pause();
-        setIsPlaying(false);
+      if (res) {
+        const newTrack = {
+          id: res.uri,
+          url: res.uri,
+          title: res.name || 'Unknown Title',
+          artist: '',
+        };
+        setPlaylist(oldPlaylist => [...oldPlaylist, newTrack]);
+        setSelectedFile(res);
       }
-  
-      await TrackPlayer.reset(); // Clear the current queue
-  
-      const title = res.name || 'Unknown Title'; // Provide a default title if res.name is null
-      const track = {
-        id: 'local_audio',
-        url: res.uri,
-        title: title,
-        artist: '',
-      };
-  
-      await TrackPlayer.add([track]);
-  
-      setSelectedFile(res);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
-        console.log('cancelled');
+        console.log('File selection cancelled');
       } else {
-        console.error('error', err);
+        console.error('Error selecting file:', err);
       }
+    }
+  };
+
+  const playPlaylist = async () => {
+    if (!playlist.length) {
+      alert('No tracks in the playlist');
+      return;
+    }
+    try {
+      await TrackPlayer.reset();
+      await TrackPlayer.add(playlist);
+      await TrackPlayer.play();
+    } catch (error) {
+      console.error('Error playing playlist:', error);
+    }
+  };
+
+  const skipToNext = async () => {
+    try {
+        await TrackPlayer.skipToNext();
+    } catch (error) {
+        console.error('Error skipping to next track:', error);
+        alert('No more tracks in the playlist!');
+        setCurrentTrack(null);
     }
   };
 
   return (
     <View style={styles.overlay}>
       <Bordertop />
-      <TouchableOpacity style={styles.button} onPress={selectFile}>
-        <Text style={styles.buttonText}>SELECT FILE</Text>
+      <TouchableOpacity style={styles.button} onPress={addFileToPlaylist}>
+        <Text style={styles.buttonText}>Add to Playlist</Text>
       </TouchableOpacity>
-      <View style={styles.albumArtPlaceholder} />
+      <TouchableOpacity style={styles.button} onPress={playPlaylist}>
+        <Text style={styles.buttonText}>Play Playlist</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={skipToNext}>
+        <Text style={styles.buttonText}>Skip Next</Text>
+      </TouchableOpacity>
+      {currentTrack && (
+          <View style={styles.currentTrackInfo}>
+              <Text style={styles.trackDetails}>
+                  Now Playing: {currentTrack.title} - {currentTrack.artist}
+              </Text>
+          </View>
+      )}
       <PlayerControls/>
     </View>
   );
@@ -104,15 +123,22 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    justifyContent: 'flex-start', 
+    justifyContent: 'flex-start',
     alignItems: 'center',
     width: '100%',
   },
+  currentTrackInfo: {
+    marginTop: 10,
+  },
+  trackDetails: {
+    fontSize: 16,
+    color: '#fff',
+  },
   albumArtPlaceholder: {
-    width: 300, 
+    width: 300,
     height: 300,
     backgroundColor: 'transparent',
-    borderColor: '#000', 
+    borderColor: '#000',
     borderWidth: 2,
     marginTop: 25,
   },
