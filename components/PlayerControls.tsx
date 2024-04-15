@@ -1,7 +1,5 @@
-// PlayerControls.tsx
-
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, PanResponder } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlay, faPause, faCircle } from '@fortawesome/free-solid-svg-icons';
 import TrackPlayer, { State } from 'react-native-track-player';
@@ -12,8 +10,19 @@ const PlayerControls: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [timelineWidth, setTimelineWidth] = useState(0);  // Store timeline width
 
-  
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      const newPosition = (evt.nativeEvent.locationX / timelineWidth) * duration;
+      TrackPlayer.seekTo(newPosition);
+    },
+    onPanResponderMove: (evt) => {
+      const newPosition = (evt.nativeEvent.locationX / timelineWidth) * duration;
+      TrackPlayer.seekTo(newPosition);
+    }
+  });
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -22,13 +31,12 @@ const PlayerControls: React.FC = () => {
 
       const currentProgress = await TrackPlayer.getPosition();
       const currentDuration = await TrackPlayer.getDuration();
-      
+
       setProgress(currentProgress);
       setDuration(currentDuration);
     };
 
     fetchProgress();
-
     const progressInterval = setInterval(fetchProgress, 1000);
     return () => clearInterval(progressInterval);
   }, []);
@@ -61,31 +69,29 @@ const PlayerControls: React.FC = () => {
 
       await TrackPlayer.add([track]);
       await TrackPlayer.play();
-
       setIsPlaying(true);
     }
-  };
-  const handleSeek = async (event: any) => {
-    const newPosition = (event.nativeEvent.locationX / event.currentTarget.offsetWidth) * duration;
-    await TrackPlayer.seekTo(newPosition);
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.songTitle}>{selectedFile ? selectedFile.name : 'No Song Selected'}</Text>
       <View style={styles.controlsContainer}>
         <TouchableOpacity onPress={playPauseToggle} style={styles.playPauseButton}>
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} color="#fff" size={28} />
         </TouchableOpacity>
-        <View style={styles.timelineContainer}>
+        <View 
+          style={styles.timelineContainer}
+          onLayout={(event) => setTimelineWidth(event.nativeEvent.layout.width)}
+          {...panResponder.panHandlers}>
           <View style={[styles.timelineBar, { width: `${(progress / duration) * 100}%` }]} />
-          <TouchableOpacity
+          <View
             style={[styles.timelineKnob, { left: `${(progress / duration) * 100}%` }]}
-            onPress={handleSeek}
           >
             <FontAwesomeIcon icon={faCircle} color="#fff" />
-          </TouchableOpacity>
+          </View>
         </View>
-        <Text>{formatTime(progress)}</Text>
+        <Text style={styles.timeDisplay}>{formatTime(progress)}</Text>
       </View>
     </View>
   );
@@ -108,6 +114,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  songTitle: {
+    color: '#fff',
+    fontSize: 18,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
   playPauseButton: {
     marginHorizontal: 10,
   },
@@ -124,6 +136,10 @@ const styles = StyleSheet.create({
   timelineKnob: {
     position: 'absolute',
     top: -6,
+  },
+  timeDisplay: {
+    marginHorizontal: 10,
+    color: '#fff',
   },
 });
 
