@@ -46,11 +46,14 @@ const LocalPlayerScreen: React.FC = () => {
   
   const setupTrackPlayer = async () => {
     try {
-      await TrackPlayer.setupPlayer();
+      const state = await TrackPlayer.getState();
+      if (state === TrackPlayer.STATE_NONE) {
+        await TrackPlayer.setupPlayer();
+      }
     } catch (error) {
       console.error('Error setting up TrackPlayer:', error);
     }
-  };
+  };;
 
   const selectFile = async () => {
     if (!isTrackPlayerInitialized) {
