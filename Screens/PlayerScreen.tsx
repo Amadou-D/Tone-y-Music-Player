@@ -63,7 +63,6 @@ const PlayerScreen = ({ navigation }) => {
         <Text style={styles.buttonText}> Load Online Track</Text>
       </TouchableOpacity>
       <View style={styles.trackInfoContainer}>
-        <Text style={styles.trackInfoText}>{songTitle}</Text>
       </View>
       <View style={styles.logoContainer}>
         <Image source={logoImage} style={styles.logo} />
